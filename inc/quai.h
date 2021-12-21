@@ -22,4 +22,4 @@ void creer_quai_train();
  */
 void creer_quai_camion();
 
-#endif QUAI_HEADER
+#endif

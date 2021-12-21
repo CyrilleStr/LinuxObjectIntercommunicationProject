@@ -22,8 +22,13 @@ int main(int argc, char *argv[])
     printf("Création des vehicules\n");
     for (i = 0; i < NB_BATEAU; i++)
     {
-        // pthread_create(bateauThreadId[i], 0, creer_bateau, NULL);
+        pthread_create(&bateauThreadId[i], 0, (void *(*)())creer_bateau, NULL);
     }
 
     // Destruction des vehicules
+    for (i = 0; i < NB_BATEAU; i++)
+    {
+        pthread_join(bateauThreadId[i], NULL);
+    }
+    printf("Arrêt de la plateforme d'ailguillage\n");
 }

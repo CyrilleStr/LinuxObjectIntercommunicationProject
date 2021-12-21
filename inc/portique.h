@@ -8,4 +8,4 @@
  */
 void creer_portique();
 
-#endif PORTIQUE_HEADER
+#endif

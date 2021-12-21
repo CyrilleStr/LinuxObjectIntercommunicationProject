@@ -129,101 +129,65 @@ sy40/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/build
 .PHONY : sy40/fast
 
-src/main.o: src/main.c.o
+# target to build an object file
+src/main.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/main.o
 .PHONY : src/main.o
 
-# target to build an object file
-src/main.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/main.c.o
-.PHONY : src/main.c.o
-
-src/main.i: src/main.c.i
+# target to preprocess a source file
+src/main.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/main.i
 .PHONY : src/main.i
 
-# target to preprocess a source file
-src/main.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/main.c.i
-.PHONY : src/main.c.i
-
-src/main.s: src/main.c.s
+# target to generate assembly for a file
+src/main.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/main.s
 .PHONY : src/main.s
 
-# target to generate assembly for a file
-src/main.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/main.c.s
-.PHONY : src/main.c.s
-
-src/portique.o: src/portique.c.o
+# target to build an object file
+src/portique.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/portique.o
 .PHONY : src/portique.o
 
-# target to build an object file
-src/portique.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/portique.c.o
-.PHONY : src/portique.c.o
-
-src/portique.i: src/portique.c.i
+# target to preprocess a source file
+src/portique.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/portique.i
 .PHONY : src/portique.i
 
-# target to preprocess a source file
-src/portique.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/portique.c.i
-.PHONY : src/portique.c.i
-
-src/portique.s: src/portique.c.s
+# target to generate assembly for a file
+src/portique.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/portique.s
 .PHONY : src/portique.s
 
-# target to generate assembly for a file
-src/portique.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/portique.c.s
-.PHONY : src/portique.c.s
-
-src/quai.o: src/quai.c.o
+# target to build an object file
+src/quai.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/quai.o
 .PHONY : src/quai.o
 
-# target to build an object file
-src/quai.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/quai.c.o
-.PHONY : src/quai.c.o
-
-src/quai.i: src/quai.c.i
+# target to preprocess a source file
+src/quai.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/quai.i
 .PHONY : src/quai.i
 
-# target to preprocess a source file
-src/quai.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/quai.c.i
-.PHONY : src/quai.c.i
-
-src/quai.s: src/quai.c.s
+# target to generate assembly for a file
+src/quai.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/quai.s
 .PHONY : src/quai.s
 
-# target to generate assembly for a file
-src/quai.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/quai.c.s
-.PHONY : src/quai.c.s
-
-src/vehicule.o: src/vehicule.c.o
+# target to build an object file
+src/vehicule.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/vehicule.o
 .PHONY : src/vehicule.o
 
-# target to build an object file
-src/vehicule.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/vehicule.c.o
-.PHONY : src/vehicule.c.o
-
-src/vehicule.i: src/vehicule.c.i
+# target to preprocess a source file
+src/vehicule.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/vehicule.i
 .PHONY : src/vehicule.i
 
-# target to preprocess a source file
-src/vehicule.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/vehicule.c.i
-.PHONY : src/vehicule.c.i
-
-src/vehicule.s: src/vehicule.c.s
-.PHONY : src/vehicule.s
-
 # target to generate assembly for a file
-src/vehicule.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/vehicule.c.s
-.PHONY : src/vehicule.c.s
+src/vehicule.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/vehicule.s
+.PHONY : src/vehicule.s
 
 # Help Target
 help:
