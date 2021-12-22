@@ -1,17 +1,18 @@
 
 project(sy40)
 
+cmake_minimum_required(VERSION 3.12)
+
 set(SRCS
     src/main.c
     src/vehicule.c
     src/portique.c
-    src/quai.c
     )
     
 set(HEADERS
     inc/portique.h
-    inc/quai.h
     inc/vehicule.h
+    inc/general.h
     )
 
 add_executable(sy40 ${SRCS} ${HEADERS})

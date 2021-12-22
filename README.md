@@ -1,8 +1,9 @@
 # SY40_Projet
+## Sujet
 
-## Fonctionnement
-
-## Nos choix 
-- Les bateau et les trains possèdes un nombre aléatoire de conteneurs compris entre 0 et 20
-- Dans le sujet chaque véhicule, portique et quai instancie une nouvelle thread
-- Les communications interthread se font par des files de messages et par des segements de mémoires partagées
+## Notre solution
+- chaque véhicule est un nouveau thread
+- un portique est une strucutre qui contrôle :
+    - les arrivées des véhicules avec des segments de mémoires partagées (mutex)
+    - les conteneurs à charger/décharger avec des files de messages
+- un poste de contrôle (thread) manipule le portique

@@ -129,65 +129,77 @@ sy40/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/build
 .PHONY : sy40/fast
 
-# target to build an object file
-src/main.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/main.o
+src/main.o: src/main.c.o
 .PHONY : src/main.o
 
-# target to preprocess a source file
-src/main.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/main.i
+# target to build an object file
+src/main.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/main.c.o
+.PHONY : src/main.c.o
+
+src/main.i: src/main.c.i
 .PHONY : src/main.i
 
-# target to generate assembly for a file
-src/main.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/main.s
+# target to preprocess a source file
+src/main.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/main.c.i
+.PHONY : src/main.c.i
+
+src/main.s: src/main.c.s
 .PHONY : src/main.s
 
-# target to build an object file
-src/portique.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/portique.o
+# target to generate assembly for a file
+src/main.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/main.c.s
+.PHONY : src/main.c.s
+
+src/portique.o: src/portique.c.o
 .PHONY : src/portique.o
 
-# target to preprocess a source file
-src/portique.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/portique.i
+# target to build an object file
+src/portique.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/portique.c.o
+.PHONY : src/portique.c.o
+
+src/portique.i: src/portique.c.i
 .PHONY : src/portique.i
 
-# target to generate assembly for a file
-src/portique.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/portique.s
+# target to preprocess a source file
+src/portique.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/portique.c.i
+.PHONY : src/portique.c.i
+
+src/portique.s: src/portique.c.s
 .PHONY : src/portique.s
 
-# target to build an object file
-src/quai.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/quai.o
-.PHONY : src/quai.o
-
-# target to preprocess a source file
-src/quai.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/quai.i
-.PHONY : src/quai.i
-
 # target to generate assembly for a file
-src/quai.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/quai.s
-.PHONY : src/quai.s
+src/portique.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/portique.c.s
+.PHONY : src/portique.c.s
 
-# target to build an object file
-src/vehicule.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/vehicule.o
+src/vehicule.o: src/vehicule.c.o
 .PHONY : src/vehicule.o
 
-# target to preprocess a source file
-src/vehicule.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/vehicule.i
+# target to build an object file
+src/vehicule.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/vehicule.c.o
+.PHONY : src/vehicule.c.o
+
+src/vehicule.i: src/vehicule.c.i
 .PHONY : src/vehicule.i
 
-# target to generate assembly for a file
-src/vehicule.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/vehicule.s
+# target to preprocess a source file
+src/vehicule.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/vehicule.c.i
+.PHONY : src/vehicule.c.i
+
+src/vehicule.s: src/vehicule.c.s
 .PHONY : src/vehicule.s
+
+# target to generate assembly for a file
+src/vehicule.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sy40.dir/build.make CMakeFiles/sy40.dir/src/vehicule.c.s
+.PHONY : src/vehicule.c.s
 
 # Help Target
 help:
@@ -204,9 +216,6 @@ help:
 	@echo "... src/portique.o"
 	@echo "... src/portique.i"
 	@echo "... src/portique.s"
-	@echo "... src/quai.o"
-	@echo "... src/quai.i"
-	@echo "... src/quai.s"
 	@echo "... src/vehicule.o"
 	@echo "... src/vehicule.i"
 	@echo "... src/vehicule.s"
