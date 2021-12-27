@@ -15,6 +15,7 @@
 int main(int argc, char *argv[])
 {
     int i;
+
     pthread_t bateauThreadId[NB_BATEAU];
     pthread_t camionThreadId[NB_CAMION];
     pthread_t trainThreadId[NB_TRAIN];
@@ -28,29 +29,29 @@ int main(int argc, char *argv[])
 
     for (i = 0; i < NB_PORTIQUE; i++)
     {
-        // Creation des files d'attentes de conteneurs à charger/décharger
-        if ((portiques[i].conteneursBateau = msgget(314, IPC_CREAT | 0600)) == -1)
-            erreur("Erreur : creation file conteneur bateau \n");
-        if ((portiques[i].conteneursCamion = msgget(315, IPC_CREAT | 0600)) == -1)
-            erreur("Erreur : creation file conteneur camion \n");
-        if ((portiques[i].conteneursTrain = msgget(316, IPC_CREAT | 0600)) == -1)
-            erreur("Erreur : creation file conteneur train\n");
-
         // Initialisation des mutex de contrôle d'arrivée au portique des véhicules
         pthread_mutex_init(&portiques[i].mutex, 0);
         pthread_cond_init(&portiques[i].arriverTrain, 0);
         pthread_cond_init(&portiques[i].arriverBateau, 0);
         pthread_cond_init(&portiques[i].arriverCamion, 0);
+        pthread_cond_init(&portiques[i].partirBateau, 0);
+        pthread_cond_init(&portiques[i].partirTrain, 0);
+        pthread_cond_init(&portiques[i].partirCamion, 0);
+
+        // Creation des sémaphores d'accès de lecture au variable bateauLibre, trainLibre et camionLibre
+        portiques[i].semid = initsem(clefsSem[i]);
 
         // Création du poste du controle du portique
         pthread_create(&posteControlePortique[i], 0, (void *(*)())creer_post_de_controle, (void *)&portiques[i]);
     }
 
+    usleep(10000);
+
     // Creation des vehicules
-    // for (i = 0; i < NB_BATEAU; i++)
-    // {
-    //     pthread_create(&bateauThreadId[i], 0, (void *(*)())creer_bateau, (void *)portiques);
-    // }
+    for (i = 0; i < NB_BATEAU; i++)
+    {
+        pthread_create(&bateauThreadId[i], 0, (void *(*)())creer_bateau, (void *)portiques);
+    }
     // for (i = 0; i < NB_TRAIN; i++)
     // {
     //     pthread_create(&trainThreadId[i], 0, (void *(*)())creer_train, (void *)portiques);
@@ -60,11 +61,11 @@ int main(int argc, char *argv[])
     //     pthread_create(&camionThreadId[i], 0, (void *(*)())creer_camion, (void *)portiques);
     // }
 
-    // // Destruction des vehicules et des portiques
-    // for (i = 0; i < NB_BATEAU; i++)
-    // {
-    //     pthread_join(bateauThreadId[i], NULL);
-    // }
+    // Destruction des vehicules et des portiques
+    for (i = 0; i < NB_BATEAU; i++)
+    {
+        pthread_join(bateauThreadId[i], NULL);
+    }
     // for (i = 0; i < NB_TRAIN; i++)
     // {
     //     pthread_join(trainThreadId[i], NULL);
@@ -79,7 +80,10 @@ int main(int argc, char *argv[])
         pthread_cond_destroy(&portiques[i].arriverBateau);
         pthread_cond_destroy(&portiques[i].arriverCamion);
         pthread_cond_destroy(&portiques[i].arriverTrain);
+        if (msgctl(portiques[i].semid, IPC_RMID, NULL) == -1)
+            erreur("Erreur : file de message non detectee\n");
     }
+
     free(portiques);
 
     printf("Arrêt de la plateforme d'ailguillage\n");
