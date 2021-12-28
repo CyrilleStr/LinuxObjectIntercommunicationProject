@@ -10,9 +10,8 @@
  * @brief Créé un poste de contrôle qui manipule un portique (struct)
  *
  * @param portique_p portique à manipuler
- * @param numPortique numéro du portique
  * @return void*
  */
-void *creer_post_de_controle(void *portique_p, int numPortique);
+void *creer_post_de_controle(void *portique_p);
 
 #endif /* PORTIQUE_HEADER */

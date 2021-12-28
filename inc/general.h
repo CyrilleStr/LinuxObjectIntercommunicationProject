@@ -10,15 +10,20 @@
 #define CLE_FILE_CONTENEUR_CAMION (key_t)315
 #define CLE_FILE_ATTENTE_TRAIN (key_t)316
 #define SKEY (key_t) IPC_PRIVATE
+
 #define FLAGS (0600 | IPC_CREAT)
 #define NB_VILLES 3
-#define NB_MAX_CONTENEURS_TRAIN 10
-#define NB_MAX_CONTENEURS_BATEAU 20
+#define NB_MAX_CONTENEURS_TRAIN 5
+#define NB_MAX_CONTENEURS_BATEAU 10
+#define NB_CONTENEURS_CAMION 1
 #define TAILLE_CONTENEUR 10000000
+#define TEMPS_MANOEUVRE_PORTIQUE 400000
 
-static key_t clefsSem[2] = {556, 557};
 static struct sembuf sem_oper_P; /* Operation P */
 static struct sembuf sem_oper_V; /* Operation V */
+static key_t clefsSem[2] = {556, 557};
+static int tailles[NB_VILLES] = {NB_MAX_CONTENEURS_BATEAU, NB_MAX_CONTENEURS_TRAIN, NB_CONTENEURS_CAMION};
+static int compteurIds;
 
 typedef enum
 {
@@ -27,7 +32,7 @@ typedef enum
 } boolean;
 
 /**
- * @brief Enumération des destinations (New york est déservie par bateau, amsterdam par le train et paris par camion)
+ * @brief Enum des destinations (New york est déservie par bateau, amsterdam par le train et paris par camion)
  *
  */
 typedef enum
@@ -38,16 +43,31 @@ typedef enum
 } ville;
 
 /**
+ * @brief Enum des vehicule
+ *
+ */
+typedef enum
+{
+    BATEAU = 0,
+    TRAIN = 1,
+    CAMION = 2
+} vehicule;
+
+/**
  * @brief Structure du portique contrôlant les arrivées des véhicules (via segment de mémoire partagée)
  * et le transfert de conteneurs (via file de messages)
  *
  */
 typedef struct
 {
+    int numPortique;
+    int semid;
+    int idBateauAQuai;
+    int idTrainAQuai;
+    int idCamionAQuai;
     boolean bateauLibre;
     boolean trainLibre;
     boolean camionLibre;
-    int semid;
     pthread_mutex_t mutex;
     pthread_cond_t arriverCamion;
     pthread_cond_t arriverTrain;
@@ -75,12 +95,23 @@ typedef struct
  */
 typedef struct
 {
+    long type;
     int idVehicule;
     int idConteneur;
     long contenu;
     ville destination;
 
 } conteneur;
+
+/**
+ * @brief Paramêtres nécessaires pour les fonctions creer_vehicule
+ *
+ */
+typedef struct
+{
+    portique *portiques;
+    int numVehicule;
+} vehiculeParam;
 
 static void erreur(const char *msg)
 {

@@ -8,8 +8,8 @@
 #include "../inc/general.h"
 
 #define NB_BATEAU 5
-#define NB_CAMION 5
-#define NB_TRAIN 2
+#define NB_CAMION 10
+#define NB_TRAIN 5
 #define NB_PORTIQUE 2
 
 int main(int argc, char *argv[])
@@ -20,6 +20,7 @@ int main(int argc, char *argv[])
     pthread_t camionThreadId[NB_CAMION];
     pthread_t trainThreadId[NB_TRAIN];
     pthread_t posteControlePortique[NB_PORTIQUE];
+    vehiculeParam params;
 
     printf("Demarrage de la plateforme d'ailguillage\n");
 
@@ -42,6 +43,7 @@ int main(int argc, char *argv[])
         portiques[i].semid = initsem(clefsSem[i]);
 
         // Création du poste du controle du portique
+        portiques[i].numPortique = i + 1;
         pthread_create(&posteControlePortique[i], 0, (void *(*)())creer_post_de_controle, (void *)&portiques[i]);
     }
 
@@ -50,30 +52,36 @@ int main(int argc, char *argv[])
     // Creation des vehicules
     for (i = 0; i < NB_BATEAU; i++)
     {
-        pthread_create(&bateauThreadId[i], 0, (void *(*)())creer_bateau, (void *)portiques);
+        params.numVehicule = i;
+        params.portiques = portiques;
+        pthread_create(&bateauThreadId[i], 0, (void *(*)())creer_bateau, (void *)&params);
     }
-    // for (i = 0; i < NB_TRAIN; i++)
-    // {
-    //     pthread_create(&trainThreadId[i], 0, (void *(*)())creer_train, (void *)portiques);
-    // }
-    // for (i = 0; i < NB_CAMION; i++)
-    // {
-    //     pthread_create(&camionThreadId[i], 0, (void *(*)())creer_camion, (void *)portiques);
-    // }
+    for (i = 0; i < NB_TRAIN; i++)
+    {
+        params.numVehicule = i;
+        params.portiques = portiques;
+        pthread_create(&trainThreadId[i], 0, (void *(*)())creer_train, (void *)&params);
+    }
+    for (i = 0; i < NB_CAMION; i++)
+    {
+        params.numVehicule = i;
+        params.portiques = portiques;
+        pthread_create(&camionThreadId[i], 0, (void *(*)())creer_camion, (void *)&params);
+    }
 
     // Destruction des vehicules et des portiques
     for (i = 0; i < NB_BATEAU; i++)
     {
         pthread_join(bateauThreadId[i], NULL);
     }
-    // for (i = 0; i < NB_TRAIN; i++)
-    // {
-    //     pthread_join(trainThreadId[i], NULL);
-    // }
-    // for (i = 0; i < NB_CAMION; i++)
-    // {
-    //     pthread_join(camionThreadId[i], NULL);
-    // }
+    for (i = 0; i < NB_TRAIN; i++)
+    {
+        pthread_join(trainThreadId[i], NULL);
+    }
+    for (i = 0; i < NB_CAMION; i++)
+    {
+        pthread_join(camionThreadId[i], NULL);
+    }
     for (i = 0; i < NB_PORTIQUE; i++)
     {
         pthread_join(posteControlePortique[i], NULL);

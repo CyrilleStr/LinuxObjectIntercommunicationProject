@@ -7,4 +7,4 @@
     - les arrivées des véhicules avec des segments de mémoires partagées (mutex)
     - les conteneurs à charger/décharger avec des files de messages
 - un poste de contrôle (thread) manipule le portique : 
-    - il manipule la grue du portique en recevant des messages des files `conteneursADecharger` et en les envoyants dans les files `conteneursACharger`
+    - il manipule la grue du portique en recevant des messages des files `conteneursADecharger` et en les envoyants dans les files `conteneursACharger
