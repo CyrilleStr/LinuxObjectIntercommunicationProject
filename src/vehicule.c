@@ -22,26 +22,28 @@ void *creer_bateau(void *params)
     else if (portiques[1].bateauLibre)
         choixPortique = 1;
     else
-        choixPortique = rand() % 2; // valeur aléatoire entre 0 et 1
+        choixPortique = rand() % NB_PORTIQUE;
     V(portiques[0].semid, BATEAU);
     V(portiques[1].semid, BATEAU);
 
     P(portiques[choixPortique].semid, 0);
     if (!portiques[choixPortique].bateauLibre) /* Attend l'autorisation du portique s'amarrer */
     {
-        V(portiques[choixPortique].semid, 0);
+        V(portiques[choixPortique].semid, BATEAU);
         pthread_cond_wait(&portiques[choixPortique].arriverBateau, &portiques[choixPortique].mutex);
     }
     else
     {
-        V(portiques[choixPortique].semid, 0);
+        V(portiques[choixPortique].semid, BATEAU);
     }
 
-    P(portiques[choixPortique].semid, 0);
-    portiques[choixPortique].bateauLibre = false;
-    V(portiques[choixPortique].semid, 0);
+    P(portiques[choixPortique].semid, BATEAU);
 
+    /*  Transmet les informations du bateau au portique */
+    portiques[choixPortique].bateauLibre = false;
     portiques[choixPortique].idBateauAQuai = id;
+    portiques[choixPortique].nbConteneursADechargerBateau = nbConteneur;
+
     printf("Bateau %d: s'amarre au portique %d\n", id, choixPortique + 1);
 
     /* Recuère les files de messages du portique et transmet le nb de conteneur a décharger */
@@ -49,30 +51,32 @@ void *creer_bateau(void *params)
         erreur("Erreur : creation file charger conteneur bateau \n");
     if ((conteneursADechargerBateau = msgget(portiques[choixPortique].clefConteneursADechargerBateau, FLAGS)) == -1)
         erreur("Erreur : creation file decharger conteneur bateau \n");
-    portiques[choixPortique].nbConteneursADechargerBateau = nbConteneur;
 
     /* Liste tous les conteneurs à décharger */
     for (i = 0; i < nbConteneur; i++)
         msgsnd(conteneursADechargerBateau, &conteneurs[i], sizeof(conteneur), 0);
 
+    V(portiques[choixPortique].semid, BATEAU);
+
     /* Attend d'être totalement chargé pour partir */
     pthread_cond_wait(&portiques[choixPortique].partirBateau, &portiques[choixPortique].mutex);
-    nbConteneur = 0;
     for (i = 0; i < NB_MAX_CONTENEURS_BATEAU; i++)
     {
+        printf("Debug Bateau %d: attend msg\n", id);
         if (msgrcv(conteneursAChargerBateau, &conteneurAcharger, sizeof(conteneur), 1, 0) == -1)
             erreur("Erreur : lecture conteneursAChargerBateau");
-        conteneurs[nbConteneur] = conteneurAcharger;
-        nbConteneur++;
+        conteneurs[i] = conteneurAcharger;
     }
 
-    portiques[choixPortique].nbConteneursAChargerBateau = 0;
-    portiques[choixPortique].idBateauAQuai = -1;
+    // portiques[choixPortique].idBateauAQuai = -1;
 
+    // P(portiques[choixPortique].semid, BATEAU);
+    // portiques[choixPortique].bateauLibre = true;
+    // V(portiques[choixPortique].semid, BATEAU);
     printf("Bateau %d: est totalement charge, il quitte le port\n", id);
-    P(portiques[choixPortique].semid, 0);
-    portiques[choixPortique].bateauLibre = true;
-    V(portiques[choixPortique].semid, 0);
+
+    /* Signal au portique qu'il est bien partie */
+    pthread_cond_signal(&portiques[choixPortique].bateauEstParti);
 
     /* Liberation de la mémoire des conteneurs */
     free(conteneurs);
@@ -100,56 +104,61 @@ void *creer_train(void *params)
     else if (portiques[1].trainLibre)
         choixPortique = 1;
     else
-        choixPortique = rand() % 2; // valeur aléatoire entre 0 et 1
+        choixPortique = rand() % NB_PORTIQUE;
     V(portiques[0].semid, TRAIN);
     V(portiques[1].semid, TRAIN);
 
-    P(portiques[choixPortique].semid, 0);
+    P(portiques[choixPortique].semid, TRAIN);
     if (!portiques[choixPortique].trainLibre) /* Attend l'autorisation du portique s'arrêter */
     {
-        V(portiques[choixPortique].semid, 0);
+        V(portiques[choixPortique].semid, TRAIN);
         pthread_cond_wait(&portiques[choixPortique].arriverTrain, &portiques[choixPortique].mutex);
     }
     else
     {
-        V(portiques[choixPortique].semid, 0);
+        V(portiques[choixPortique].semid, TRAIN);
     }
 
-    P(portiques[choixPortique].semid, 0);
-    portiques[choixPortique].trainLibre = false;
-    V(portiques[choixPortique].semid, 0);
+    P(portiques[choixPortique].semid, TRAIN);
 
+    /* Transmet les informations du train au portique */
+    portiques[choixPortique].trainLibre = false;
     portiques[choixPortique].idTrainAQuai = id;
+    portiques[choixPortique].nbConteneursADechargerTrain = nbConteneur;
+
     printf("Train %d: s'arrete au portique %d\n", id, choixPortique + 1);
 
-    /* Recuère les files de messages du portique et transmet le nb de conteneur a décharger */
+    /* Recuère les files de messages du portique */
     if ((conteneursAChargerTrain = msgget(portiques[choixPortique].clefConteneursAChargerTrain, FLAGS)) == -1)
         erreur("Erreur : creation file charger conteneur train \n");
     if ((conteneursADechargerTrain = msgget(portiques[choixPortique].clefConteneursADechargerTrain, FLAGS)) == -1)
         erreur("Erreur : creation file decharger conteneur train \n");
-    portiques[choixPortique].nbConteneursADechargerTrain = nbConteneur;
 
     /* Liste tous les conteneurs à décharger */
     for (i = 0; i < nbConteneur; i++)
         msgsnd(conteneursADechargerTrain, &conteneurs[i], sizeof(conteneur), 0);
 
+    V(portiques[choixPortique].semid, TRAIN);
+
     /* Attend d'être totalement chargé pour partir */
     pthread_cond_wait(&portiques[choixPortique].partirTrain, &portiques[choixPortique].mutex);
-    nbConteneur = 0;
     for (i = 0; i < NB_MAX_CONTENEURS_TRAIN; i++)
     {
+        printf("Debug Train %d: attend msg\n", id);
         if (msgrcv(conteneursAChargerTrain, &conteneurAcharger, sizeof(conteneur), 1, 0) == -1)
             erreur("Erreur : lecture conteneursAChargerTrain");
-        conteneurs[nbConteneur] = conteneurAcharger;
-        nbConteneur++;
+        conteneurs[i] = conteneurAcharger;
     }
-    portiques[choixPortique].nbConteneursAChargerTrain = 0;
-    portiques[choixPortique].idTrainAQuai = -1;
 
+    // portiques[choixPortique].idTrainAQuai = -1;
+
+    // P(portiques[choixPortique].semid, TRAIN);
+    // portiques[choixPortique].trainLibre = true;
+    // V(portiques[choixPortique].semid, TRAIN);
     printf("Train %d: est totalement charge, il quitte le port\n", id);
-    P(portiques[choixPortique].semid, 0);
-    portiques[choixPortique].trainLibre = true;
-    V(portiques[choixPortique].semid, 0);
+
+    /* Signal au portique qu'il est bien partie */
+    pthread_cond_signal(&portiques[choixPortique].trainEstParti);
 
     /* Liberation de la mémoire des conteneurs */
     free(conteneurs);
@@ -177,56 +186,57 @@ void *creer_camion(void *params)
     else if (portiques[1].camionLibre)
         choixPortique = 1;
     else
-        choixPortique = rand() % 2; // valeur aléatoire entre 0 et 1
+        choixPortique = rand() % NB_PORTIQUE;
     V(portiques[0].semid, CAMION);
     V(portiques[1].semid, CAMION);
 
-    P(portiques[choixPortique].semid, 0);
-    if (!portiques[choixPortique].camionLibre) /* Attend l'autorisation du portique se garer */
+    P(portiques[choixPortique].semid, CAMION);
+    if (!portiques[choixPortique].camionLibre) /* Attend l'autorisation du portique pour se garer */
     {
-        V(portiques[choixPortique].semid, 0);
+        V(portiques[choixPortique].semid, CAMION);
         pthread_cond_wait(&portiques[choixPortique].arriverCamion, &portiques[choixPortique].mutex);
     }
     else
     {
-        V(portiques[choixPortique].semid, 0);
+        V(portiques[choixPortique].semid, CAMION);
     }
 
-    P(portiques[choixPortique].semid, 0);
-    portiques[choixPortique].camionLibre = false;
-    V(portiques[choixPortique].semid, 0);
+    P(portiques[choixPortique].semid, CAMION);
 
+    /* Transmet les informations du camion au portique */
+    portiques[choixPortique].camionLibre = false;
     portiques[choixPortique].idCamionAQuai = id;
+    portiques[choixPortique].nbConteneursADechargerCamion = nbConteneur;
+
     printf("Camion %d: se gare au portique %d\n", id, choixPortique + 1);
 
-    /* Recuère les files de messages du portique et transmet le nb de conteneur a décharger */
+    /* Recuère les files de messages du portique */
     if ((conteneursAChargerCamion = msgget(portiques[choixPortique].clefConteneursAChargerCamion, FLAGS)) == -1)
         erreur("Erreur : creation file charger conteneur camion \n");
     if ((conteneursADechargerCamion = msgget(portiques[choixPortique].clefConteneursADechargerCamion, FLAGS)) == -1)
         erreur("Erreur : creation file decharger conteneur camion \n");
-    portiques[choixPortique].nbConteneursADechargerCamion = nbConteneur;
 
     /* Liste tous les conteneurs à décharger */
     for (i = 0; i < nbConteneur; i++)
         msgsnd(conteneursADechargerCamion, &conteneurs[i], sizeof(conteneur), 0);
 
+    V(portiques[choixPortique].semid, CAMION);
+
     /* Attend d'être totalement chargé pour partir */
     pthread_cond_wait(&portiques[choixPortique].partirCamion, &portiques[choixPortique].mutex);
-    nbConteneur = 0;
     for (i = 0; i < NB_CONTENEURS_CAMION; i++)
     {
+        printf("Debug Camion %d: attend msg\n", id);
         if (msgrcv(conteneursAChargerCamion, &conteneurAcharger, sizeof(conteneur), 1, 0) == -1)
             erreur("Erreur : lecture conteneursAChargerCamion");
-        conteneurs[nbConteneur] = conteneurAcharger;
-        nbConteneur++;
+        conteneurs[i] = conteneurAcharger;
     }
-    portiques[choixPortique].nbConteneursAChargerCamion = 0;
-    portiques[choixPortique].idCamionAQuai = -1;
+    // portiques[choixPortique].nbConteneursAChargerCamion = 0;
 
     printf("Camion %d: est totalement charge, il quitte le parking\n", id);
-    P(portiques[choixPortique].semid, 0);
-    portiques[choixPortique].camionLibre = true;
-    V(portiques[choixPortique].semid, 0);
+
+    /* Signal au portique qu'il est bien partis */
+    pthread_cond_signal(&portiques[choixPortique].camionEstParti);
 
     /* Liberation de la mémoire des conteneurs */
     free(conteneurs);

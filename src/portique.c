@@ -51,8 +51,9 @@ void *creer_post_de_controle(void *portique_p)
 
     while (1)
     {
+        // printf("portique %d : %d\n", portique_m->numPortique, portique_m->nbConteneursADechargerBateau);
         /* Bateau */
-        if (portique_m->nbConteneursAChargerBateau <= 0 && portique_m->nbConteneursADechargerBateau <= 0)
+        if (portique_m->nbConteneursAChargerBateau >= NB_MAX_CONTENEURS_BATEAU && portique_m->nbConteneursADechargerBateau <= 0)
         {
             /* Le bateau a tout charger et décharger = il est partie = on peut appeler un autre bateau */
             pthread_cond_signal(&portique_m->arriverBateau);
@@ -68,13 +69,17 @@ void *creer_post_de_controle(void *portique_p)
 
                 if (grue.destination == AMSTERDAM && !portique_m->trainLibre)
                 {
+                    P(portique_m->semid, TRAIN);
                     portique_m->nbConteneursAChargerTrain++;
+                    V(portique_m->semid, TRAIN);
                     msgsnd(conteneursAChargerTrain, &grue, sizeof(conteneur), 0);
                     printf("Portique %d: chargement du conteneur %d du bateau %d sur le train %d\n", portique_m->numPortique, grue.idConteneur + 1, grue.idVehicule, portique_m->idTrainAQuai);
                 }
                 else if (grue.destination == PARIS && !portique_m->camionLibre)
                 {
+                    P(portique_m->semid, CAMION);
                     portique_m->nbConteneursAChargerCamion++;
+                    V(portique_m->semid, CAMION);
                     msgsnd(conteneursAChargerCamion, &grue, sizeof(conteneur), 0);
                     printf("Portique %d: chargement du conteneur %d du bateau %d sur le camion %d\n", portique_m->numPortique, grue.idConteneur + 1, grue.idVehicule, portique_m->idCamionAQuai);
                 }
@@ -92,13 +97,21 @@ void *creer_post_de_controle(void *portique_p)
             /* Si le bateau est plein, il peut partir */
             if (portique_m->nbConteneursAChargerBateau >= NB_MAX_CONTENEURS_BATEAU)
             {
-                printf("debug bateau %d part \n", portique_m->idBateauAQuai);
+                // printf("debug bateau %d part nbConteneursAChargerBateau : %d\n", portique_m->idBateauAQuai, portique_m->nbConteneursAChargerBateau);
                 pthread_cond_signal(&portique_m->partirBateau);
+                pthread_cond_wait(&portique_m->bateauEstParti, &portique_m->mutex);
+                P(portique_m->semid, BATEAU);
+                portique_m->nbConteneursAChargerBateau = 0;
+                portique_m->nbConteneursADechargerTrain = 0;
+                portique_m->camionLibre = true;
+                portique_m->idBateauAQuai = -1;
+                V(portique_m->semid, BATEAU);
+                printf("debug bateau\n");
             }
         }
 
         /* Train */
-        if (portique_m->nbConteneursAChargerTrain <= 0 && portique_m->nbConteneursADechargerTrain <= 0)
+        if (portique_m->nbConteneursAChargerTrain >= NB_MAX_CONTENEURS_TRAIN && portique_m->nbConteneursADechargerTrain <= 0)
         {
             /* Si le train a tout charger et décharger = il est partie = on peut appeler un autre train */
             pthread_cond_signal(&portique_m->arriverTrain);
@@ -114,13 +127,17 @@ void *creer_post_de_controle(void *portique_p)
 
                 if (grue.destination == NEWYORK && !portique_m->bateauLibre)
                 {
+                    P(portique_m->semid, BATEAU);
                     portique_m->nbConteneursAChargerBateau++;
+                    V(portique_m->semid, BATEAU);
                     msgsnd(conteneursAChargerBateau, &grue, sizeof(conteneur), 0);
                     printf("Portique %d: chargement du conteneur %d du train %d sur le bateau %d\n", portique_m->numPortique, grue.idConteneur + 1, grue.idVehicule, portique_m->idBateauAQuai);
                 }
                 else if (grue.destination == PARIS && !portique_m->camionLibre)
                 {
+                    P(portique_m->semid, CAMION);
                     portique_m->nbConteneursAChargerCamion++;
+                    V(portique_m->semid, CAMION);
                     msgsnd(conteneursAChargerTrain, &grue, sizeof(conteneur), 0);
                     printf("Portique %d: chargement du conteneur %d du train %d sur le camion %d\n", portique_m->numPortique, grue.idConteneur + 1, grue.idVehicule, portique_m->idCamionAQuai);
                 }
@@ -135,16 +152,24 @@ void *creer_post_de_controle(void *portique_p)
                 usleep(TEMPS_MANOEUVRE_PORTIQUE);
             }
 
+            // printf("debug train %d: nbConteneursAChargerTrain %d\n", portique_m->idTrainAQuai, portique_m->nbConteneursAChargerTrain);
             /* Si le train est plein, il peut partir */
             if (portique_m->nbConteneursAChargerTrain >= NB_MAX_CONTENEURS_TRAIN)
             {
-                printf("debug train %d part \n", portique_m->idTrainAQuai);
                 pthread_cond_signal(&portique_m->partirTrain);
+                pthread_cond_wait(&portique_m->trainEstParti, &portique_m->mutex);
+                P(portique_m->semid, TRAIN);
+                portique_m->nbConteneursADechargerTrain = 0;
+                portique_m->nbConteneursAChargerTrain = 0;
+                portique_m->camionLibre = true;
+                portique_m->idTrainAQuai = -1;
+                V(portique_m->semid, TRAIN);
+                printf("debug train\n");
             }
         }
 
         /* Camion */
-        if (portique_m->nbConteneursAChargerCamion <= 0 && portique_m->nbConteneursADechargerCamion <= 0)
+        if (portique_m->nbConteneursAChargerCamion >= NB_CONTENEURS_CAMION && portique_m->nbConteneursADechargerCamion <= 0)
         {
             /* Si le camion a tout charger et décharger = il est partie = on peut appeler un autre camion */
             pthread_cond_signal(&portique_m->arriverCamion);
@@ -160,13 +185,17 @@ void *creer_post_de_controle(void *portique_p)
 
                 if (grue.destination == NEWYORK && !portique_m->bateauLibre)
                 {
+                    P(portique_m->semid, BATEAU);
                     portique_m->nbConteneursAChargerBateau++;
+                    V(portique_m->semid, BATEAU);
                     msgsnd(conteneursAChargerBateau, &grue, sizeof(conteneur), 0);
                     printf("Portique %d: chargement du conteneur %d du camion %d sur le bateau %d\n", portique_m->numPortique, grue.idConteneur + 1, grue.idVehicule, portique_m->idBateauAQuai);
                 }
                 else if (grue.destination == AMSTERDAM && !portique_m->trainLibre)
                 {
+                    P(portique_m->semid, TRAIN);
                     portique_m->nbConteneursAChargerTrain++;
+                    V(portique_m->semid, TRAIN);
                     msgsnd(conteneursAChargerTrain, &grue, sizeof(conteneur), 0);
                     printf("Portique %d: chargement du conteneur %d du camion %d sur le train %d\n", portique_m->numPortique, grue.idConteneur + 1, grue.idVehicule, portique_m->idTrainAQuai);
                 }
@@ -185,11 +214,19 @@ void *creer_post_de_controle(void *portique_p)
             /* Si le camion est plein, il peut partir */
             if (portique_m->nbConteneursAChargerCamion >= NB_CONTENEURS_CAMION)
             {
-                printf("debug camion %d part \n", portique_m->idCamionAQuai);
+                // printf("debug camion %d part nbConteneursAChargerCamion %d\n", portique_m->idCamionAQuai, portique_m->nbConteneursAChargerCamion);
                 pthread_cond_signal(&portique_m->partirCamion);
+                pthread_cond_wait(&portique_m->camionEstParti, &portique_m->mutex);
+                P(portique_m->semid, CAMION);
+                portique_m->nbConteneursAChargerCamion = 0;
+                portique_m->nbConteneursADechargerCamion = 0;
+                portique_m->camionLibre = true;
+                portique_m->idCamionAQuai = -1;
+                V(portique_m->semid, CAMION);
+                printf("debug camion \n");
             }
         }
 
-        usleep(1000);
+        usleep(10000);
     }
 }

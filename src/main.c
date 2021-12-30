@@ -7,11 +7,6 @@
 #include "../inc/vehicule.h"
 #include "../inc/general.h"
 
-#define NB_BATEAU 5
-#define NB_CAMION 10
-#define NB_TRAIN 5
-#define NB_PORTIQUE 2
-
 int main(int argc, char *argv[])
 {
     int i;
@@ -38,6 +33,9 @@ int main(int argc, char *argv[])
         pthread_cond_init(&portiques[i].partirBateau, 0);
         pthread_cond_init(&portiques[i].partirTrain, 0);
         pthread_cond_init(&portiques[i].partirCamion, 0);
+        pthread_cond_init(&portiques[i].bateauEstParti, 0);
+        pthread_cond_init(&portiques[i].trainEstParti, 0);
+        pthread_cond_init(&portiques[i].camionEstParti, 0);
 
         // Creation des sémaphores d'accès de lecture au variable bateauLibre, trainLibre et camionLibre
         portiques[i].semid = initsem(clefsSem[i]);

@@ -11,6 +11,10 @@
 #define CLE_FILE_ATTENTE_TRAIN (key_t)316
 #define SKEY (key_t) IPC_PRIVATE
 
+#define NB_BATEAU 5
+#define NB_CAMION 40
+#define NB_TRAIN 5
+#define NB_PORTIQUE 2
 #define FLAGS (0600 | IPC_CREAT)
 #define NB_VILLES 3
 #define NB_MAX_CONTENEURS_TRAIN 5
@@ -75,6 +79,9 @@ typedef struct
     pthread_cond_t partirBateau;
     pthread_cond_t partirTrain;
     pthread_cond_t partirCamion;
+    pthread_cond_t bateauEstParti;
+    pthread_cond_t trainEstParti;
+    pthread_cond_t camionEstParti;
     int nbConteneursAChargerBateau;
     int nbConteneursADechargerBateau;
     int nbConteneursAChargerTrain;
