@@ -17,16 +17,16 @@
 #define NB_PORTIQUE 2
 #define FLAGS (0600 | IPC_CREAT)
 #define NB_VILLES 3
-#define NB_MAX_CONTENEURS_TRAIN 5
-#define NB_MAX_CONTENEURS_BATEAU 10
-#define NB_CONTENEURS_CAMION 1
+#define NB_MAX_CONTENEURS_TRAIN 10
+#define NB_MAX_CONTENEURS_BATEAU 5
+#define NB_MAX_CONTENEURS_CAMION 1
 #define TAILLE_CONTENEUR 10000000
 #define TEMPS_MANOEUVRE_PORTIQUE 400000
 
 static struct sembuf sem_oper_P; /* Operation P */
 static struct sembuf sem_oper_V; /* Operation V */
 static key_t clefsSem[2] = {556, 557};
-static int tailles[NB_VILLES] = {NB_MAX_CONTENEURS_BATEAU, NB_MAX_CONTENEURS_TRAIN, NB_CONTENEURS_CAMION};
+static int tailles[NB_VILLES] = {NB_MAX_CONTENEURS_BATEAU, NB_MAX_CONTENEURS_TRAIN, NB_MAX_CONTENEURS_CAMION};
 static int compteurIds;
 
 typedef enum
@@ -82,11 +82,11 @@ typedef struct
     pthread_cond_t bateauEstParti;
     pthread_cond_t trainEstParti;
     pthread_cond_t camionEstParti;
-    int nbConteneursAChargerBateau;
+    int nbConteneursChargesBateau;
     int nbConteneursADechargerBateau;
-    int nbConteneursAChargerTrain;
+    int nbConteneursChargesTrain;
     int nbConteneursADechargerTrain;
-    int nbConteneursAChargerCamion;
+    int nbConteneursChargesCamion;
     int nbConteneursADechargerCamion;
     key_t clefConteneursAChargerBateau;
     key_t clefConteneursADechargerBateau;

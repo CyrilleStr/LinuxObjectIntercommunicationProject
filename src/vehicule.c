@@ -26,6 +26,7 @@ void *creer_bateau(void *params)
     V(portiques[0].semid, BATEAU);
     V(portiques[1].semid, BATEAU);
 
+    pthread_mutex_lock(&portiques[choixPortique].mutex);
     P(portiques[choixPortique].semid, 0);
     if (!portiques[choixPortique].bateauLibre) /* Attend l'autorisation du portique s'amarrer */
     {
@@ -43,6 +44,7 @@ void *creer_bateau(void *params)
     portiques[choixPortique].bateauLibre = false;
     portiques[choixPortique].idBateauAQuai = id;
     portiques[choixPortique].nbConteneursADechargerBateau = nbConteneur;
+    portiques[choixPortique].nbConteneursChargesBateau = 0;
 
     printf("Bateau %d: s'amarre au portique %d\n", id, choixPortique + 1);
 
@@ -62,21 +64,18 @@ void *creer_bateau(void *params)
     pthread_cond_wait(&portiques[choixPortique].partirBateau, &portiques[choixPortique].mutex);
     for (i = 0; i < NB_MAX_CONTENEURS_BATEAU; i++)
     {
-        printf("Debug Bateau %d: attend msg\n", id);
+        // printf("Debug Bateau %d: attend msg\n", id);
         if (msgrcv(conteneursAChargerBateau, &conteneurAcharger, sizeof(conteneur), 1, 0) == -1)
             erreur("Erreur : lecture conteneursAChargerBateau");
         conteneurs[i] = conteneurAcharger;
     }
 
-    // portiques[choixPortique].idBateauAQuai = -1;
-
-    // P(portiques[choixPortique].semid, BATEAU);
-    // portiques[choixPortique].bateauLibre = true;
-    // V(portiques[choixPortique].semid, BATEAU);
+    P(portiques[choixPortique].semid, BATEAU);
+    portiques[choixPortique].bateauLibre = true;
+    portiques[choixPortique].idBateauAQuai = -1;
+    V(portiques[choixPortique].semid, BATEAU);
+    pthread_mutex_unlock(&portiques[choixPortique].mutex);
     printf("Bateau %d: est totalement charge, il quitte le port\n", id);
-
-    /* Signal au portique qu'il est bien partie */
-    pthread_cond_signal(&portiques[choixPortique].bateauEstParti);
 
     /* Liberation de la mémoire des conteneurs */
     free(conteneurs);
@@ -108,6 +107,7 @@ void *creer_train(void *params)
     V(portiques[0].semid, TRAIN);
     V(portiques[1].semid, TRAIN);
 
+    pthread_mutex_lock(&portiques[choixPortique].mutex);
     P(portiques[choixPortique].semid, TRAIN);
     if (!portiques[choixPortique].trainLibre) /* Attend l'autorisation du portique s'arrêter */
     {
@@ -125,6 +125,7 @@ void *creer_train(void *params)
     portiques[choixPortique].trainLibre = false;
     portiques[choixPortique].idTrainAQuai = id;
     portiques[choixPortique].nbConteneursADechargerTrain = nbConteneur;
+    portiques[choixPortique].nbConteneursChargesTrain = 0;
 
     printf("Train %d: s'arrete au portique %d\n", id, choixPortique + 1);
 
@@ -144,21 +145,18 @@ void *creer_train(void *params)
     pthread_cond_wait(&portiques[choixPortique].partirTrain, &portiques[choixPortique].mutex);
     for (i = 0; i < NB_MAX_CONTENEURS_TRAIN; i++)
     {
-        printf("Debug Train %d: attend msg\n", id);
+        // printf("Debug Train %d: attend msg\n", id);
         if (msgrcv(conteneursAChargerTrain, &conteneurAcharger, sizeof(conteneur), 1, 0) == -1)
             erreur("Erreur : lecture conteneursAChargerTrain");
         conteneurs[i] = conteneurAcharger;
     }
 
-    // portiques[choixPortique].idTrainAQuai = -1;
-
-    // P(portiques[choixPortique].semid, TRAIN);
-    // portiques[choixPortique].trainLibre = true;
-    // V(portiques[choixPortique].semid, TRAIN);
-    printf("Train %d: est totalement charge, il quitte le port\n", id);
-
-    /* Signal au portique qu'il est bien partie */
-    pthread_cond_signal(&portiques[choixPortique].trainEstParti);
+    P(portiques[choixPortique].semid, TRAIN);
+    portiques[choixPortique].trainLibre = true;
+    portiques[choixPortique].idTrainAQuai = -1;
+    V(portiques[choixPortique].semid, TRAIN);
+    pthread_mutex_unlock(&portiques[choixPortique].mutex);
+    printf("Train %d: est totalement charge, il quitte la gare\n", id);
 
     /* Liberation de la mémoire des conteneurs */
     free(conteneurs);
@@ -169,7 +167,7 @@ void *creer_camion(void *params)
     vehiculeParam *parametre = (vehiculeParam *)params;
     int id = parametre->numVehicule;
     portique *portiques = parametre->portiques;
-    int nbConteneur = NB_CONTENEURS_CAMION;
+    int nbConteneur = NB_MAX_CONTENEURS_CAMION;
     conteneur *conteneurs = creer_conteneurs(nbConteneur, id, PARIS);
     conteneur conteneurAcharger;
     int choixPortique, i;
@@ -190,6 +188,7 @@ void *creer_camion(void *params)
     V(portiques[0].semid, CAMION);
     V(portiques[1].semid, CAMION);
 
+    pthread_mutex_lock(&portiques[choixPortique].mutex);
     P(portiques[choixPortique].semid, CAMION);
     if (!portiques[choixPortique].camionLibre) /* Attend l'autorisation du portique pour se garer */
     {
@@ -207,6 +206,7 @@ void *creer_camion(void *params)
     portiques[choixPortique].camionLibre = false;
     portiques[choixPortique].idCamionAQuai = id;
     portiques[choixPortique].nbConteneursADechargerCamion = nbConteneur;
+    portiques[choixPortique].nbConteneursChargesCamion = 0;
 
     printf("Camion %d: se gare au portique %d\n", id, choixPortique + 1);
 
@@ -224,19 +224,21 @@ void *creer_camion(void *params)
 
     /* Attend d'être totalement chargé pour partir */
     pthread_cond_wait(&portiques[choixPortique].partirCamion, &portiques[choixPortique].mutex);
-    for (i = 0; i < NB_CONTENEURS_CAMION; i++)
+    for (i = 0; i < NB_MAX_CONTENEURS_CAMION; i++)
     {
-        printf("Debug Camion %d: attend msg\n", id);
+        // printf("Debug Camion %d: attend msg\n", id);
         if (msgrcv(conteneursAChargerCamion, &conteneurAcharger, sizeof(conteneur), 1, 0) == -1)
             erreur("Erreur : lecture conteneursAChargerCamion");
         conteneurs[i] = conteneurAcharger;
     }
     // portiques[choixPortique].nbConteneursAChargerCamion = 0;
 
+    P(portiques[choixPortique].semid, CAMION);
+    portiques[choixPortique].camionLibre = true;
+    portiques[choixPortique].idCamionAQuai = -1;
+    V(portiques[choixPortique].semid, CAMION);
+    pthread_mutex_unlock(&portiques[choixPortique].mutex);
     printf("Camion %d: est totalement charge, il quitte le parking\n", id);
-
-    /* Signal au portique qu'il est bien partis */
-    pthread_cond_signal(&portiques[choixPortique].camionEstParti);
 
     /* Liberation de la mémoire des conteneurs */
     free(conteneurs);
