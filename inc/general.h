@@ -12,22 +12,25 @@
 #define SKEY (key_t) IPC_PRIVATE
 
 #define NB_BATEAU 5
-#define NB_CAMION 40
-#define NB_TRAIN 5
+#define NB_TRAIN 10
+#define NB_CAMION 50
 #define NB_PORTIQUE 2
 #define FLAGS (0600 | IPC_CREAT)
 #define NB_VILLES 3
-#define NB_MAX_CONTENEURS_TRAIN 10
-#define NB_MAX_CONTENEURS_BATEAU 5
+#define NB_MAX_CONTENEURS_BATEAU 10
+#define NB_MAX_CONTENEURS_TRAIN 5
 #define NB_MAX_CONTENEURS_CAMION 1
 #define TAILLE_CONTENEUR 10000000
 #define TEMPS_MANOEUVRE_PORTIQUE 400000
+#define NB_MANOEUVRE_SANS_CHARGEMENT_AUTORISE 5
 
 static struct sembuf sem_oper_P; /* Operation P */
 static struct sembuf sem_oper_V; /* Operation V */
 static key_t clefsSem[2] = {556, 557};
-static int tailles[NB_VILLES] = {NB_MAX_CONTENEURS_BATEAU, NB_MAX_CONTENEURS_TRAIN, NB_MAX_CONTENEURS_CAMION};
-static int compteurIds;
+static int taillesVehicule[NB_VILLES] = {NB_MAX_CONTENEURS_BATEAU, NB_MAX_CONTENEURS_TRAIN, NB_MAX_CONTENEURS_CAMION};
+static int nbVehicule[NB_VILLES] = {NB_BATEAU, NB_TRAIN, NB_CAMION};
+static int compteurConteneurVehicules[3] = {0, 0, 0};
+static int semCompteurId;
 
 typedef enum
 {
@@ -65,14 +68,16 @@ typedef enum
 typedef struct
 {
     int numPortique;
-    int semid;
     int idBateauAQuai;
     int idTrainAQuai;
     int idCamionAQuai;
+    int semId;
     boolean bateauLibre;
     boolean trainLibre;
     boolean camionLibre;
-    pthread_mutex_t mutex;
+    pthread_mutex_t mutexBateau;
+    pthread_mutex_t mutexTrain;
+    pthread_mutex_t mutexCamion;
     pthread_cond_t arriverCamion;
     pthread_cond_t arriverTrain;
     pthread_cond_t arriverBateau;
