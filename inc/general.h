@@ -21,16 +21,16 @@
 #define NB_MAX_CONTENEURS_TRAIN 5
 #define NB_MAX_CONTENEURS_CAMION 1
 #define TAILLE_CONTENEUR 10000000
-#define TEMPS_MANOEUVRE_PORTIQUE 400000
+#define TEMPS_MANOEUVRE_PORTIQUE 4000
 #define NB_MANOEUVRE_SANS_CHARGEMENT_AUTORISE 5
 
 static struct sembuf sem_oper_P; /* Operation P */
 static struct sembuf sem_oper_V; /* Operation V */
-static key_t clefsSem[2] = {556, 557};
+static key_t clefsSem[2] = {556, 557},
+             clefSemCompteurVehicule = 789;
 static int taillesVehicule[NB_VILLES] = {NB_MAX_CONTENEURS_BATEAU, NB_MAX_CONTENEURS_TRAIN, NB_MAX_CONTENEURS_CAMION};
-static int nbVehicule[NB_VILLES] = {NB_BATEAU, NB_TRAIN, NB_CAMION};
-static int compteurConteneurVehicules[3] = {0, 0, 0};
-static int semCompteurId;
+static int semCompteurVehicule;
+static int *nbVehiculesPartis;
 
 typedef enum
 {
@@ -67,6 +67,7 @@ typedef enum
  */
 typedef struct
 {
+    boolean continuer;
     int numPortique;
     int idBateauAQuai;
     int idTrainAQuai;

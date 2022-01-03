@@ -2,7 +2,6 @@
 
 void *creer_post_de_controle(void *portique_p)
 {
-    boolean continuer = true;
     int fin = 0;
     portique *portique_m = (portique *)portique_p;
     conteneur grue;
@@ -19,6 +18,7 @@ void *creer_post_de_controle(void *portique_p)
         /* Compteurs de non-chargement et non-dechargement */
         compteurConteneurNonDechargeBateau = 0,
         compteurConteneurNonDechargeTrain = 0,
+        compteurConteneurNonDechargeCamion = 0,
         compteurConteneurNonChargeBateau = 0,
         compteurConteneurNonChargeTrain = 0,
         compteurConteneurNonChargeCamion = 0;
@@ -59,7 +59,8 @@ void *creer_post_de_controle(void *portique_p)
     if ((conteneursADechargerTrain = msgget(portique_m->clefConteneursADechargerTrain, FLAGS)) == -1)
         erreur("Erreur : creation file decharger conteneur train\n");
 
-    while (continuer)
+    portique_m->continuer = true;
+    while (portique_m->continuer)
     {
         /* Bateau */
         if (portique_m->bateauLibre)
@@ -68,6 +69,8 @@ void *creer_post_de_controle(void *portique_p)
             pthread_mutex_lock(&portique_m->mutexBateau);
             pthread_cond_signal(&portique_m->arriverBateau);
             pthread_mutex_unlock(&portique_m->mutexBateau);
+            compteurConteneurNonDechargeBateau = 0;
+            compteurConteneurNonChargeBateau = 0;
         }
         else
         {
@@ -154,6 +157,8 @@ void *creer_post_de_controle(void *portique_p)
             pthread_mutex_lock(&portique_m->mutexTrain);
             pthread_cond_signal(&portique_m->arriverTrain);
             pthread_mutex_unlock(&portique_m->mutexTrain);
+            compteurConteneurNonDechargeTrain = 0;
+            compteurConteneurNonChargeTrain = 0;
         }
         else
         {
@@ -242,6 +247,8 @@ void *creer_post_de_controle(void *portique_p)
             pthread_mutex_lock(&portique_m->mutexCamion);
             pthread_cond_signal(&portique_m->arriverCamion);
             pthread_mutex_unlock(&portique_m->mutexCamion);
+            compteurConteneurNonDechargeCamion = 0;
+            compteurConteneurNonChargeCamion = 0;
         }
         else
         {
@@ -259,6 +266,7 @@ void *creer_post_de_controle(void *portique_p)
                 if (grue.destination == NEWYORK && !portique_m->bateauLibre && portique_m->nbConteneursChargesBateau < NB_MAX_CONTENEURS_BATEAU)
                 {
                     /* On charge le conteneur dans le bateau a quai */
+                    compteurConteneurNonDechargeCamion = 0;
                     compteurConteneurNonChargeBateau = 0;
                     portique_m->nbConteneursChargesBateau++;
                     msgsnd(conteneursAChargerBateau, &grue, sizeof(conteneur), 0);
@@ -267,6 +275,7 @@ void *creer_post_de_controle(void *portique_p)
                 else if (grue.destination == AMSTERDAM && !portique_m->trainLibre && portique_m->nbConteneursChargesTrain < NB_MAX_CONTENEURS_TRAIN)
                 {
                     /* On charge le conteneur dans le train a quai */
+                    compteurConteneurNonDechargeCamion = 0;
                     compteurConteneurNonChargeTrain = 0;
                     portique_m->nbConteneursChargesTrain++;
                     msgsnd(conteneursAChargerTrain, &grue, sizeof(conteneur), 0);
@@ -274,11 +283,22 @@ void *creer_post_de_controle(void *portique_p)
                 }
                 else
                 {
-                    /* Il n'y a pas de bateau ni de train pour decharger ce conteneur, il peut partir */
-                    pthread_mutex_lock(&portique_m->mutexCamion);
-                    pthread_cond_signal(&portique_m->partirCamion);
-                    pthread_mutex_unlock(&portique_m->mutexCamion);
-                    printf("Portique %d: conteneur %d du camion %d ne peut pas etre decharges, il peut partir\n", portique_m->numPortique, grue.idConteneur + 1, grue.idVehicule);
+                    compteurConteneurNonDechargeCamion++;
+                    if (compteurConteneurNonDechargeCamion < NB_MAX_CONTENEURS_CAMION + 1)
+                    {
+                        /* Il n'y a pas de train ni de bateau pour charger ce conteneur, on le remet dans la file de msg */
+                        printf("Portique %d: conteneur %d du camion %d ne peut pas etre decharges, on essayera plus tard\n", portique_m->numPortique, grue.idConteneur + 1, portique_m->idTrainAQuai);
+                        msgsnd(conteneursADechargerCamion, &grue, sizeof(conteneur), 0);
+                        portique_m->nbConteneursADechargerCamion++;
+                    }
+                    else
+                    {
+                        /* Il n'y a pas de bateau ni de train pour decharger ce conteneur, il peut partir */
+                        pthread_mutex_lock(&portique_m->mutexCamion);
+                        pthread_cond_signal(&portique_m->partirCamion);
+                        pthread_mutex_unlock(&portique_m->mutexCamion);
+                        printf("Portique %d: conteneur %d du camion %d ne peut pas etre decharges, il peut partir\n", portique_m->numPortique, grue.idConteneur + 1, grue.idVehicule);
+                    }
                 };
                 portique_m->nbConteneursADechargerCamion--;
                 V(portique_m->semId, CAMION);

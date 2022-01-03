@@ -78,7 +78,7 @@ void *creer_bateau(void *params)
 
     /* Liberation de la mémoire des conteneurs */
     free(conteneurs);
-
+    // printf("debug fin bateau\n");
     return NULL;
 }
 
@@ -260,15 +260,7 @@ conteneur *creer_conteneurs(int nbConteneurs, int idVehicule, ville provenance)
         do
         { /* Verifie que la destination attribué n'est pas la provenance et qu'on ne créer pas plus de conteneurs pour une destination que de capacite pour cette même destination*/
             conteneurs[i].destination = (ville)rand() % NB_VILLES;
-            // P(semCompteurId, conteneurs[i].destination);
-            // if (compteurConteneurVehicules[conteneurs[i].destination] >= taillesVehicule[conteneurs[i].destination] * nbVehicule[conteneurs[i].destination])
-            //     destinatinPleine = true;
-            // else
-            //     destinatinPleine = false;
         } while (conteneurs[i].destination == provenance || destinatinPleine);
-        // compteurConteneurVehicules[conteneurs[i].destination]++;
-        // V(semCompteurId, conteneurs[i].destination);
-        // printf("%d : compteurConteneur %d\n", conteneurs[i].destination, compteurConteneurVehicules[conteneurs[i].destination]);
     }
     return conteneurs;
 }
