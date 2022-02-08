@@ -1,4 +1,6 @@
-# SY40_Projet
+# Linux object intercommunication project
+- school project
+- documentation and variable names in french
 ## Installation
     # Pour générer le Makefile
     cmake . 
